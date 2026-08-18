@@ -1,0 +1,5 @@
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin
+PYTHONPATH=/app/src
+
+0 0 * * * . /app/.cron_env; cd /app && /usr/local/bin/python -m alsafex_scraper.main >> /app/logs/cron.log 2>&1

@@ -1,0 +1,13 @@
+services:
+  alsafex-scraper:
+    build: .
+    image: alsafex-scraper:latest
+    container_name: alsafex-scraper
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      TZ: America/Argentina/Buenos_Aires
+      RUN_ON_START: "false"
+    volumes:
+      - ./output:/app/output
+      - ./logs:/app/logs
