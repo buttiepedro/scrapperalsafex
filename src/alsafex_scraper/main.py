@@ -38,7 +38,7 @@ def run(upload: bool = True) -> int:
         path = knowledge.write_payload(payload)
 
         for category in payload["categorias"]:
-            logger.info("%-34s %s", category["nombre"], len(category["documentos"]))
+            logger.info("%-34s %s", category["nombre"], category["cantidad"])
 
         if upload and config.UPLOAD_ENABLED:
             uploader.upload(path)

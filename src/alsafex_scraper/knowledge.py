@@ -13,39 +13,26 @@ def build_payload(documents: list[Document]) -> dict:
     for doc in documents:
         bucket = categories.setdefault(
             doc.category_slug,
-            {"slug": doc.category_slug, "nombre": doc.category, "documentos": []},
+            {"slug": doc.category_slug, "nombre": doc.category, "cantidad": 0},
         )
-        bucket["documentos"].append(
-            {
-                "nombre": doc.name,
-                "url": doc.url,
-                "fecha_publicacion": doc.file_date,
-            }
-        )
-
-    items = [
-        {
-            "id": doc.doc_key,
-            "titulo": doc.name,
-            "categoria": doc.category,
-            "categoria_slug": doc.category_slug,
-            "url": doc.url,
-            "fecha_publicacion": doc.file_date,
-            "contenido": (
-                f"{doc.name} es un documento de la categoría {doc.category} "
-                f"disponible en la sección Descargas de Alsafex. "
-                f"Se puede descargar en formato PDF desde {doc.url}."
-            ),
-        }
-        for doc in documents
-    ]
+        bucket["cantidad"] += 1
 
     return {
         "fuente": config.SOURCE_URL,
         "generado_en": utc_now(),
         "total": len(documents),
         "categorias": list(categories.values()),
-        "items": items,
+        "documentos": [
+            {
+                "id": doc.doc_key,
+                "titulo": doc.name,
+                "categoria": doc.category,
+                "categoria_slug": doc.category_slug,
+                "url": doc.url,
+                "fecha_publicacion": doc.file_date,
+            }
+            for doc in documents
+        ],
     }
 
 

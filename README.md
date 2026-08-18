@@ -79,28 +79,22 @@ deja la base de conocimiento vacía.
   "generado_en": "2026-08-18T18:24:31+00:00",
   "total": 58,
   "categorias": [
-    {
-      "slug": "catalogos_perfiles",
-      "nombre": "Catálogos de Perfiles",
-      "documentos": [
-        { "nombre": "Alfa", "url": "https://...pdf", "fecha_publicacion": "2023-08" }
-      ]
-    }
+    { "slug": "catalogos_perfiles", "nombre": "Catálogos de Perfiles", "cantidad": 12 }
   ],
-  "items": [
+  "documentos": [
     {
       "id": "a1b2c3d4e5f6a7b8",
       "titulo": "Alfa",
       "categoria": "Catálogos de Perfiles",
       "categoria_slug": "catalogos_perfiles",
       "url": "https://...pdf",
-      "fecha_publicacion": "2023-08",
-      "contenido": "Alfa es un documento de la categoría..."
+      "fecha_publicacion": "2023-08"
     }
   ]
 }
 ```
 
-El esquema se arma en `src/alsafex_scraper/knowledge.py`; si el backend espera otra forma,
-se ajusta solo ahí.
+`categorias` es solo un resumen con la cantidad de cada sección; los documentos se listan una
+sola vez en `documentos`. El esquema se arma en `src/alsafex_scraper/knowledge.py`; si el
+backend espera otra forma, se ajusta solo ahí.
 
