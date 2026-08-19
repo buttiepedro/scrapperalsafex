@@ -8,9 +8,26 @@ touch /app/logs/cron.log /app/logs/scraper.log
 printenv | grep -E '^ALSAFEX_' | sed 's/^/export /' > /app/.cron_env || true
 chmod 600 /app/.cron_env
 
-if [[ "${RUN_ON_START:-false}" == "true" ]]; then
+# RUN_ON_START: once (primer arranque), always (cada arranque), false (nunca).
+FIRST_RUN_MARKER=/app/output/.first_run_done
+run_now=false
+case "${RUN_ON_START:-once}" in
+    always|true)
+        run_now=true
+        ;;
+    once)
+        if [[ -f "$FIRST_RUN_MARKER" ]]; then
+            echo "[entrypoint] Scrapeo inicial ya realizado ($(cat "$FIRST_RUN_MARKER")); solo cron."
+        else
+            run_now=true
+        fi
+        ;;
+esac
+
+if [[ "$run_now" == "true" ]]; then
     echo "[entrypoint] Ejecución inicial..."
-    cd /app && python -m alsafex_scraper.main || true
+    cd /app && python -m alsafex_scraper.main 2>&1 | tee -a /app/logs/scraper.log || true
+    date -Is > "$FIRST_RUN_MARKER"
 fi
 
 echo "[entrypoint] cron activo (00:00 ${TZ:-UTC}); fecha actual: $(date)"

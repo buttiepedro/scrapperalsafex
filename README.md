@@ -48,8 +48,11 @@ docker compose up -d --build
 docker compose logs -f
 ```
 
-El contenedor deja un `cron` corriendo y ejecuta el scraper a las 00:00. Para forzar una
-ejecución inmediata:
+En el primer arranque el contenedor scrapea de inmediato y después queda con el `cron`
+corriendo, que lo ejecuta a las 00:00. El primer arranque se marca con
+`output/.first_run_done`; borrar ese archivo hace que vuelva a scrapear al levantar.
+
+Para forzar una ejecución inmediata en cualquier momento:
 
 ```bash
 docker compose exec alsafex-scraper python -m alsafex_scraper.main
@@ -66,6 +69,7 @@ docker compose exec alsafex-scraper python -m alsafex_scraper.main
 | `ALSAFEX_MIN_DOCUMENTS` | `40` | Mínimo para permitir la subida |
 | `ALSAFEX_TIMEOUT` | `30` | Timeout HTTP en segundos |
 | `ALSAFEX_MAX_RETRIES` | `3` | Reintentos ante fallos de red |
+| `RUN_ON_START` | `once` | `once`: scrapea en el primer arranque y después solo cron. `always`: scrapea en cada arranque. `false`: nunca al arrancar |
 
 Como cada import **reemplaza todo** el contenido, si el scraper extrae menos de
 `ALSAFEX_MIN_DOCUMENTS` documentos aborta sin subir nada. Así un cambio de maquetación no

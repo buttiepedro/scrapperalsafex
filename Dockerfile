@@ -16,12 +16,12 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/
-COPY docker/crontab /etc/cron.d/alsafex
+COPY docker/crontab /app/crontab
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN chmod 0644 /etc/cron.d/alsafex \
+RUN chmod 0644 /app/crontab \
     && chmod +x /usr/local/bin/entrypoint.sh \
-    && crontab /etc/cron.d/alsafex \
+    && crontab /app/crontab \
     && mkdir -p /app/output /app/logs
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
