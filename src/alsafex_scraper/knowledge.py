@@ -9,19 +9,13 @@ logger = logging.getLogger(__name__)
 
 
 def build_payload(documents: list[Document]) -> dict:
-    categories: dict[str, dict] = {}
-    for doc in documents:
-        bucket = categories.setdefault(
-            doc.category_slug,
-            {"slug": doc.category_slug, "nombre": doc.category, "cantidad": 0},
-        )
-        bucket["cantidad"] += 1
+    regular_documents = [doc for doc in documents if doc.category_slug != "accesorios"]
+    accessories = [doc for doc in documents if doc.category_slug == "accesorios"]
 
     return {
         "fuente": config.SOURCE_URL,
         "generado_en": utc_now(),
         "total": len(documents),
-        "categorias": list(categories.values()),
         "documentos": [
             {
                 "id": doc.doc_key,
@@ -32,7 +26,19 @@ def build_payload(documents: list[Document]) -> dict:
                 "fecha_publicacion": doc.file_date,
                 **({"descripcion": doc.description} if doc.description else {}),
             }
-            for doc in documents
+            for doc in regular_documents
+        ],
+        "accesorios": [
+            {
+                "id": doc.doc_key,
+                "titulo": doc.name,
+                "categoria": doc.category,
+                "categoria_slug": doc.category_slug,
+                "url": doc.url,
+                "fecha_publicacion": doc.file_date,
+                **({"descripcion": doc.description} if doc.description else {}),
+            }
+            for doc in accessories
         ],
     }
 
