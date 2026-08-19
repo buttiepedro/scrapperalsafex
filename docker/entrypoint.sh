@@ -8,6 +8,10 @@ touch /app/logs/cron.log /app/logs/scraper.log
 printenv | grep -E '^ALSAFEX_' | sed 's/^/export /' > /app/.cron_env || true
 chmod 600 /app/.cron_env
 
+echo "[entrypoint] endpoint: ${ALSAFEX_KNOWLEDGE_ENDPOINT:-<vacio>}"
+echo "[entrypoint] origen:   ${ALSAFEX_URL:-https://alsafex.com.ar/descargas}"
+echo "[entrypoint] token:    $([[ -n "${ALSAFEX_KNOWLEDGE_TOKEN:-}" ]] && echo "definido (${#ALSAFEX_KNOWLEDGE_TOKEN} chars)" || echo "<vacio>")"
+
 # RUN_ON_START: once (primer arranque), always (cada arranque), false (nunca).
 FIRST_RUN_MARKER=/app/output/.first_run_done
 run_now=false
@@ -32,4 +36,5 @@ fi
 
 echo "[entrypoint] cron activo (00:00 ${TZ:-UTC}); fecha actual: $(date)"
 cron
-exec tail -F /app/logs/cron.log /app/logs/scraper.log
+# -n 0: solo lineas nuevas, para no confundir con logs de corridas anteriores.
+exec tail -n 0 -F /app/logs/cron.log /app/logs/scraper.log
