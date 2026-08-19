@@ -1,7 +1,10 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parents[2]
+load_dotenv(BASE_DIR / ".env")
 
 SOURCE_URL = os.getenv("ALSAFEX_URL", "https://alsafex.com.ar/descargas")
 
@@ -25,6 +28,17 @@ USER_AGENT = os.getenv(
 
 # Solo se aceptan PDFs servidos por este host, para evitar seguir enlaces externos.
 ALLOWED_HOST = "alsafex.com.ar"
+
+ACCESSORIES_URL = os.getenv(
+    "ALSAFEX_ACCESSORIES_URL",
+    "https://alsafex.com.ar/wp-json/wc/store/v1/products",
+)
+ACCESSORIES_CATEGORIES_URL = os.getenv(
+    "ALSAFEX_ACCESSORIES_CATEGORIES_URL",
+    "https://alsafex.com.ar/wp-json/wc/store/v1/products/categories",
+)
+ACCESSORIES_PER_PAGE = int(os.getenv("ALSAFEX_ACCESSORIES_PER_PAGE", "100"))
+ACCESSORIES_MAX_PAGES = int(os.getenv("ALSAFEX_ACCESSORIES_MAX_PAGES", "20"))
 
 # Cortafuegos ante un cambio de maquetación: si se extraen muy pocos documentos se
 # aborta la subida, porque el import reemplaza todo el contenido del asistente.

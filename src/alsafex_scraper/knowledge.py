@@ -30,6 +30,7 @@ def build_payload(documents: list[Document]) -> dict:
                 "categoria_slug": doc.category_slug,
                 "url": doc.url,
                 "fecha_publicacion": doc.file_date,
+                **({"descripcion": doc.description} if doc.description else {}),
             }
             for doc in documents
         ],

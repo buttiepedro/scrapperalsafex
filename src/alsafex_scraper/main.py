@@ -4,7 +4,7 @@ import sys
 from logging.handlers import RotatingFileHandler
 
 from . import config, knowledge, uploader
-from .scraper import scrape
+from .scraper import scrape, scrape_accessories
 
 logger = logging.getLogger("alsafex_scraper")
 
@@ -27,6 +27,11 @@ def setup_logging(verbose: bool = False) -> None:
 def run(upload: bool = True) -> int:
     try:
         documents = scrape()
+
+        try:
+            documents.extend(scrape_accessories())
+        except Exception:
+            logger.warning("No se pudieron consultar los accesorios; se continúa con los PDFs", exc_info=True)
 
         if len(documents) < config.MIN_DOCUMENTS:
             raise RuntimeError(

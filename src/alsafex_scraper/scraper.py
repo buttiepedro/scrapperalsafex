@@ -26,9 +26,22 @@ class Document:
     url: str
     file_date: str | None
     doc_key: str
+    description: str | None = None
 
     def as_dict(self) -> dict:
         return asdict(self)
+
+
+def _strip_html(value: str | None) -> str:
+    if not value:
+        return ""
+    return re.sub(r"<[^>]+>", " ", value)
+
+
+def _clean_description(value: str | None) -> str:
+    cleaned = _strip_html(value).replace("\xa0", " ")
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    return cleaned.strip()
 
 
 def _normalize(text: str) -> str:
@@ -76,6 +89,101 @@ def fetch_html(url: str = config.SOURCE_URL) -> str:
                 time.sleep(config.RETRY_BACKOFF ** attempt)
 
     raise RuntimeError(f"No se pudo descargar {url}") from last_error
+
+
+def fetch_json_paginated(url: str, *, params: dict | None = None) -> list[dict]:
+    headers = {"User-Agent": config.USER_AGENT, "Accept-Language": "es-AR,es;q=0.9"}
+    merged_params = {"per_page": config.ACCESSORIES_PER_PAGE, **(params or {})}
+    collected: list[dict] = []
+    page = 1
+    last_error: Exception | None = None
+
+    while page <= config.ACCESSORIES_MAX_PAGES:
+        request_params = {**merged_params, "page": page}
+        try:
+            response = requests.get(
+                url,
+                params=request_params,
+                headers=headers,
+                timeout=config.REQUEST_TIMEOUT,
+            )
+            response.raise_for_status()
+            payload = response.json()
+            if not payload:
+                break
+            if not isinstance(payload, list):
+                raise ValueError(f"La API respondió un payload inesperado en {url}: {type(payload).__name__}")
+            collected.extend(payload)
+            if len(payload) < request_params["per_page"]:
+                break
+            page += 1
+        except requests.RequestException as exc:
+            last_error = exc
+            logger.warning("Fallo al consultar accesorios en %s (página %s): %s", url, page, exc)
+            break
+        except ValueError as exc:
+            last_error = exc
+            logger.warning("Respuesta inválida de accesorios en %s: %s", url, exc)
+            break
+
+    if last_error is not None and not collected:
+        raise RuntimeError(f"No se pudo consultar {url}") from last_error
+
+    return collected
+
+
+def parse_accessories(products: list[dict]) -> list[Document]:
+    parsed: list[Document] = []
+    for product in products:
+        categories = product.get("categories") or []
+        category_names = ", ".join(
+            category.get("name", "")
+            for category in categories
+            if isinstance(category, dict) and category.get("name")
+        )
+        if not category_names:
+            category_names = "Accesorios"
+
+        description = _clean_description(product.get("description") or product.get("short_description"))
+        name = _clean(product.get("name") or "Producto")
+        url = product.get("permalink") or ""
+        if not url:
+            url = f"https://alsafex.com.ar/producto/{_normalize(name).replace(' ', '-')}/"
+
+        parsed.append(
+            Document(
+                category_slug="accesorios",
+                category=category_names,
+                name=name,
+                url=url,
+                file_date=None,
+                doc_key=_doc_key("accesorios", name),
+                description=description,
+            )
+        )
+    return parsed
+
+
+def fetch_accessory_categories() -> list[dict]:
+    logger.info("Consultando categorías de accesorios desde %s", config.ACCESSORIES_CATEGORIES_URL)
+    categories = fetch_json_paginated(config.ACCESSORIES_CATEGORIES_URL)
+    return [
+        {
+            "id": item.get("id"),
+            "nombre": item.get("name"),
+            "permalink": item.get("permalink"),
+        }
+        for item in categories
+        if isinstance(item, dict)
+    ]
+
+
+def scrape_accessories() -> list[Document]:
+    logger.info("Consultando accesorios desde %s", config.ACCESSORIES_URL)
+    products = fetch_json_paginated(config.ACCESSORIES_URL)
+    documents = parse_accessories(products)
+    logger.info("Se encontraron %s productos de accesorios", len(documents))
+    return documents
 
 
 def parse_documents(html: str, base_url: str = config.SOURCE_URL) -> list[Document]:
