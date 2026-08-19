@@ -67,8 +67,10 @@ def _file_date(url: str) -> str | None:
     return f"{match.group(1)}-{match.group(2)}" if match else None
 
 
-def _doc_key(category_slug: str, name: str) -> str:
+def _doc_key(category_slug: str, name: str, unique_hint: str | None = None) -> str:
     raw = f"{category_slug}|{_normalize(name)}"
+    if unique_hint:
+        raw += f"|{_normalize(unique_hint)}"
     return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
 
 
@@ -134,21 +136,32 @@ def fetch_json_paginated(url: str, *, params: dict | None = None) -> list[dict]:
 
 def parse_accessories(products: list[dict]) -> list[Document]:
     parsed: list[Document] = []
+    seen_urls: set[str] = set()
     for product in products:
         categories = product.get("categories") or []
-        category_names = ", ".join(
-            category.get("name", "")
+        valid_categories = [
+            category
             for category in categories
             if isinstance(category, dict) and category.get("name")
-        )
-        if not category_names:
-            category_names = "Accesorios"
+        ]
+        # Se excluyen productos sin categorias utiles y los que solo tienen "Accesorios".
+        if not valid_categories:
+            continue
+        if len(valid_categories) == 1 and _normalize(valid_categories[0].get("name", "")) == "accesorios":
+            continue
+
+        category_names = ", ".join(category.get("name", "") for category in valid_categories)
 
         description = _clean_description(product.get("description") or product.get("short_description"))
         name = _clean(product.get("name") or "Producto")
         url = product.get("permalink") or ""
         if not url:
             url = f"https://alsafex.com.ar/producto/{_normalize(name).replace(' ', '-')}/"
+        if url in seen_urls:
+            continue
+
+        seen_urls.add(url)
+        product_id = product.get("id")
 
         parsed.append(
             Document(
@@ -157,7 +170,7 @@ def parse_accessories(products: list[dict]) -> list[Document]:
                 name=name,
                 url=url,
                 file_date=None,
-                doc_key=_doc_key("accesorios", name),
+                doc_key=_doc_key("accesorios", name, unique_hint=str(product_id or url)),
                 description=description,
             )
         )
