@@ -23,7 +23,7 @@ class WritePayloadTest(unittest.TestCase):
                         "titulo": "Bisagra",
                         "categoria": "Accesorios",
                         "categoria_slug": "accesorios",
-                        "url": "https://alsafex.com.ar/producto/bisagra/",
+                        "Link": "https://alsafex.com.ar/producto/bisagra/",
                         "fecha_publicacion": None,
                     }
                 ],

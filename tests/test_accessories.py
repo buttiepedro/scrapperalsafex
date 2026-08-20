@@ -48,6 +48,21 @@ class AccessoriesParsingTest(unittest.TestCase):
         self.assertEqual(len(result), 2)
         self.assertNotEqual(result[0].doc_key, result[1].doc_key)
 
+    def test_parse_accessories_removes_description_prefix(self):
+        products = [
+            {
+                "id": 203,
+                "name": "Bisagra",
+                "permalink": "https://alsafex.com.ar/producto/bisagra/",
+                "description": "<ul><li><strong>Descripción:</strong> Bisagra para línea corrediza</li></ul>",
+                "categories": [{"name": "Accesorios"}, {"name": "Herrajes"}],
+            }
+        ]
+
+        result = parse_accessories(products)
+
+        self.assertEqual(result[0].description, "Bisagra para línea corrediza")
+
     def test_parse_accessories_excludes_single_accessories_category(self):
         products = [
             {

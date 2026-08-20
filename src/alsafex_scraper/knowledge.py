@@ -21,9 +21,7 @@ def build_payload(documents: list[Document]) -> dict:
                 "id": doc.doc_key,
                 "titulo": doc.name,
                 "categoria": doc.category,
-                "categoria_slug": doc.category_slug,
-                "url": doc.url,
-                "fecha_publicacion": doc.file_date,
+                "Link": doc.url,
                 **({"descripcion": doc.description} if doc.description else {}),
             }
             for doc in regular_documents
@@ -34,8 +32,7 @@ def build_payload(documents: list[Document]) -> dict:
                 "titulo": doc.name,
                 "categoria": doc.category,
                 "categoria_slug": doc.category_slug,
-                "url": doc.url,
-                "fecha_publicacion": doc.file_date,
+                "Link": doc.url,
                 **({"descripcion": doc.description} if doc.description else {}),
             }
             for doc in accessories

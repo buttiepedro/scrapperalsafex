@@ -41,6 +41,7 @@ def _strip_html(value: str | None) -> str:
 def _clean_description(value: str | None) -> str:
     cleaned = _strip_html(value).replace("\xa0", " ")
     cleaned = re.sub(r"\s+", " ", cleaned)
+    cleaned = re.sub(r"^\s*descripci[oó]n\s*:\s*", "", cleaned, flags=re.IGNORECASE)
     return cleaned.strip()
 
 
